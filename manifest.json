@@ -10,7 +10,8 @@
         "tabs",
         "activeTab",
         "storage",
-        "unlimitedStorage"
+        "unlimitedStorage",
+        "scripting"
     ],
     "host_permissions": [
         "https://*/*",

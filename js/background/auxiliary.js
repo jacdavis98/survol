@@ -12,30 +12,34 @@ const handleStateRequest = (req, sender) => {
     });
 };
 
-const handleFetchRequest = async (req, sendResponse) => {
-    let res = { status: 'error', data: null };
+const handleFetchRequest = (req, sendResponse) => {
+    new Promise(async (resolve) => {
+        let res = { status: 'error', data: null };
 
-    if (REQUEST_CACHE[req.data.url]) {
-        res = REQUEST_CACHE[req.data.url];
-        res.cached = true;
-        sendResponse(res);
-    } else {
-        try {
-            const data = await fetch(req.data.url);
-            const result = req.data.noJSON ? await data.text() : await data.json();
+        if (REQUEST_CACHE[req.data.url]) {
+            res = REQUEST_CACHE[req.data.url];
+            res.cached = true;
+            resolve(res);
+        } else {
+            try {
+                const data = await fetch(req.data.url);
+                const result = req.data.noJSON ? await data.text() : await data.json();
 
-            res.data = result;
-            res.status = 'OK';
-            res.cached = false;
-            REQUEST_CACHE[req.data.url] = res;
-            sendResponse(res);
-        } catch (error) {
-            res.data = error;
-            res.status = 'error';
-            sendResponse(res);
-            console.error('SURVOL - Fetching error', error);
+                res.data = result;
+                res.status = 'OK';
+                res.cached = false;
+                REQUEST_CACHE[req.data.url] = res;
+                resolve(res);
+            } catch (error) {
+                res.data = error;
+                res.status = 'error';
+                resolve(res);
+                console.error('SURVOL - Fetching error', error);
+            }
         }
-    }
+    }).then((response) => {
+        sendResponse(response);
+    });
 };
 
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
@@ -78,4 +82,20 @@ chrome.runtime.onInstalled.addListener(() => {
             }
         });
     });
+});
+
+//iterate through all tabs and execute content script
+chrome.runtime.onInstalled.addListener(async () => {
+    for (const cs of chrome.runtime.getManifest().content_scripts) {
+        for (const tab of await chrome.tabs.query({url: cs.matches})) {
+            try {
+                await chrome.scripting.executeScript({
+                    target: {tabId: tab.id},
+                    files: cs.js,
+                });
+            } catch (e) {
+                console.error("expected error trying to script on chrome webstore",e);
+            }
+        }
+    }
 });
