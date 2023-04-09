@@ -1,19 +1,21 @@
 {
-    "manifest_version": 2,
-    "version": "0.6.2",
+    "manifest_version": 3,
+    "version": "0.7.0",
     "name": "__MSG_extensionName__",
     "short_name": "__MSG_extensionShortName__",
     "description": "__MSG_extensionDescription__",
     "author": "Maxime DOLORES - mdolr",
     "default_locale": "en",
     "permissions": [
-        "https://*/*",
-        "http://*/*",
-        "file:///*",
         "tabs",
         "activeTab",
         "storage",
         "unlimitedStorage"
+    ],
+    "host_permissions": [
+        "https://*/*",
+        "http://*/*",
+        "file:///*"
     ],
     "icons": {
         "128": "/images/icon128.png"
@@ -52,15 +54,22 @@
         }
     ],
     "background": {
-        "scripts": ["js/background/auxiliary.js"]
+        "service_worker": "js/background/auxiliary.js"
     },
-    "browser_action": {
+    "action": {
         "default_title": "Survol",
         "default_popup": "html/popup.html"
     },
     "web_accessible_resources": [
-        "images/upvote.png",
-        "images/comment.png",
-        "images/reddit.png"
+        {
+            "resources": [
+            "images/upvote.png",
+            "images/comment.png",
+            "images/reddit.png"
+        ],
+        "matches": [
+            "*://*/*"
+        ]
+    }
     ]
 }
