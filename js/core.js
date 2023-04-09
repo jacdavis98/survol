@@ -49,13 +49,22 @@ document.addEventListener('DOMContentLoaded', () => {
      *
      * The whole logic behind this function is situated in js/background/auxiliary.js
      */
+
+    const port = chrome.runtime.connect({ name: 'content' });
+
     window.survolBackgroundRequest = (url, noJSON) => {
         return new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({ action: 'request', data: { url, noJSON } }, (res) => {
-                (res.status == 'OK') ? resolve(res): reject(res);
+            port.postMessage({ action: 'request', data: { url, noJSON } });
+            port.onMessage.addListener((response) => {
+                if (response.status == 'OK') {
+                    resolve(response);
+                } else {
+                    reject(response);
+                }
             });
         });
-    };
+        
+        };
 
     /* insertSurvolDiv
      * Parameters: 

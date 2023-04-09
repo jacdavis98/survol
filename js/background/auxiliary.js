@@ -12,47 +12,49 @@ const handleStateRequest = (req, sender) => {
     });
 };
 
-const handleFetchRequest = (req, sendResponse) => {
-    new Promise(async (resolve) => {
-        let res = { status: 'error', data: null };
+const handleFetchRequest = async (req) => {
+    let res = { status: 'error', data: null };
 
-        if (REQUEST_CACHE[req.data.url]) {
-            res = REQUEST_CACHE[req.data.url];
-            res.cached = true;
-            resolve(res);
-        } else {
-            try {
-                const data = await fetch(req.data.url);
-                const result = req.data.noJSON ? await data.text() : await data.json();
+    const corsProxyUrl = 'https://thingproxy.freeboard.io/fetch/';
+    const requestUrl = corsProxyUrl + req.data.url;
 
-                res.data = result;
-                res.status = 'OK';
-                res.cached = false;
-                REQUEST_CACHE[req.data.url] = res;
-                resolve(res);
-            } catch (error) {
-                res.data = error;
-                res.status = 'error';
-                resolve(res);
-                console.error('SURVOL - Fetching error', error);
-            }
-        }
-    }).then((response) => {
-        sendResponse(response);
-    });
-};
-
-chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-    if (req.action === 'state') {
-        handleStateRequest(req, sender);
-    } else if (req.action === 'request') {
-        handleFetchRequest(req, sendResponse);
+    if (REQUEST_CACHE[requestUrl]) {
+        res = REQUEST_CACHE[requestUrl];
+        res.cached = true;
     } else {
-        sendResponse({ action: 'none', status: 'OK' });
+        try {
+            const data = await fetch(requestUrl);
+            const result = req.data.noJSON ? await data.text() : await data.json();
+
+            res.data = result;
+            res.status = 'OK';
+            res.cached = false;
+            REQUEST_CACHE[requestUrl] = res;
+        } catch (error) {
+            res.data = error;
+            res.status = 'error';
+            console.error('SURVOL - Fetching error', error);
+        }
     }
 
-    return true;
+    return res;
+};
+
+chrome.runtime.onConnect.addListener((port) => {
+    console.assert(port.name === 'content');
+
+    port.onMessage.addListener(async (req) => {
+        if (req.action === 'state') {
+            handleStateRequest(req, port.sender);
+        } else if (req.action === 'request') {
+            const response = await handleFetchRequest(req);
+            port.postMessage(response);
+        } else {
+            port.postMessage({ action: 'none', status: 'OK' });
+        }
+    });
 });
+
 
 const DEFAULT_SETTINGS = {
     version: '0.7.0',
