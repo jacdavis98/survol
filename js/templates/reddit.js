@@ -138,7 +138,7 @@ class RedditHover {
     static getUpVotes(json) {
         const scoreCommentDisplay = document.createElement('div');
         const upvoteImage = document.createElement('img');
-        upvoteImage.src = chrome.extension.getURL('images/upvote.png');
+        upvoteImage.src = chrome.runtime.getURL('images/upvote.png');
         upvoteImage.className = 'survol-reddit-upvote-icon';
 
         scoreCommentDisplay.appendChild(upvoteImage);
@@ -188,11 +188,11 @@ class RedditHover {
         postDetails.className = 'survol-reddit-post-details';
 
         const redditLogo = document.createElement('img');
-        redditLogo.src = chrome.extension.getURL('images/reddit.png');
+        redditLogo.src = chrome.runtime.getURL('images/reddit.png');
         redditLogo.className = 'survol-reddit-logo';
 
         const commentImage = document.createElement('img');
-        commentImage.src = chrome.extension.getURL('images/comment.png');
+        commentImage.src = chrome.runtime.getURL('images/comment.png');
         commentImage.className = 'survol-reddit-comment-icon';
         //-----
 

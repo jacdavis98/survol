@@ -145,7 +145,7 @@ class StackExchangeHover {
 
         const scoreCommentDisplay = document.createElement('div');
         const upvoteImage = document.createElement('img');
-        upvoteImage.src = chrome.extension.getURL('images/upvote.png');
+        upvoteImage.src = chrome.runtime.getURL('images/upvote.png');
         upvoteImage.className = 'survol-reddit-upvote-icon';
 
         scoreCommentDisplay.appendChild(upvoteImage);
