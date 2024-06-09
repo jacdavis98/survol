@@ -2,7 +2,7 @@ const REQUEST_CACHE = {};
 
 // Clear cache every 10 mins
 setInterval(() => {
-    Object.keys(REQUEST_CACHE).length = 0;
+    Object.keys(REQUEST_CACHE).forEach(key => delete REQUEST_CACHE[key]);
 }, 1000 * 60 * 10);
 
 const handleStateRequest = (req, sender) => {
@@ -42,15 +42,18 @@ const handleFetchRequest = async (req) => {
 
 chrome.runtime.onConnect.addListener((port) => {
     console.assert(port.name === 'content');
+    console.log('Connected to content script:', port);
 
     port.onMessage.addListener(async (req) => {
-        if (req.action === 'state') {
-            handleStateRequest(req, port.sender);
-        } else if (req.action === 'request') {
-            const response = await handleFetchRequest(req);
-            port.postMessage(response);
-        } else {
-            port.postMessage({ action: 'none', status: 'OK' });
+        if (port.sender.tab) {
+            if (req.action === 'state') {
+                handleStateRequest(req, port.sender);
+            } else if (req.action === 'request') {
+                const response = await handleFetchRequest(req);
+                port.postMessage(response);
+            } else {
+                port.postMessage({ action: 'none', status: 'OK' });
+            }
         }
     });
 });
