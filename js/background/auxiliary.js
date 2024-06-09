@@ -23,7 +23,7 @@ const handleFetchRequest = async (req) => {
         res.cached = true;
     } else {
         try {
-            const data = await fetch(requestUrl);
+            const data = await fetch(requestUrl, {credentials: 'omit'});
             const result = req.data.noJSON ? await data.text() : await data.json();
 
             res.data = result;
